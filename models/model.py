@@ -3,11 +3,11 @@ import torchvision
 from torch import nn
 
 ######pre-trained
-vgg16 = torchvision.models.vgg16(pretrained=True)
+vgg16 = torchvision.models.vgg16(pretrained=True) 
 #vgg16.classifier.add_module('add_linear', nn.Linear(1000, 10))
 vgg16.classifier[6] = nn.Linear(4096, 10)
 #print(vgg16)
-model_save_path='./saved/cifar_net.pth'
+model_save_path='./cifar_net.pth'
 
 #####save
 ##method_1: save parameter
