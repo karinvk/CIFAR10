@@ -1,2 +1,1 @@
 epochs : 30
-model_save_path : './saved/cifar_net.pth'
