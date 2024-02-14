@@ -1,7 +1,11 @@
+import torch
+import torchvision
+from torch import nn
 
-model=ResNet(BasicBlock, [2, 2, 2, 2], num_classes=1000, include_top=True).to(device)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-#optimizer = torch.optim.Adam(params, lr=0.0001)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+criterion = nn.CrossEntropyLoss()
+model = torch.load(model_save_path).to(device)
+optimizer = torch.optim.Adam(params, lr=0.0001)
 
 best_acc = 0.0
 train_accuracies = []  # record accuracy for training

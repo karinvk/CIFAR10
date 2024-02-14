@@ -1,5 +1,0 @@
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-epochs = 30
-criterion = nn.CrossEntropyLoss()
-save_path = './cifar_net.pth'
