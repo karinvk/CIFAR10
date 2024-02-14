@@ -1,8 +1,8 @@
-python ./datasets/dataloader.py \
---dataset CIFAR10 \
---batch_size 50
+python ./datasets/dataloader.py 
 
 python ./models/model.py
 
 python ./train.py \
---configs.yaml
+--dataset 'CIFAR10' \
+--batch_size 50 \
+--config configs.yaml \
