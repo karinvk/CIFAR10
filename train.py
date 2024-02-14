@@ -1,13 +1,18 @@
 import torch
 import torchvision
 from torch import nn
+from datasets.dataloader import data_loader
+from tqdm import tqdm
+import argparse
+import yaml
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-criterion = nn.CrossEntropyLoss()
-model = torch.load(model_save_path).to(device)
-optimizer = torch.optim.Adam(params, lr=0.0001)
 
-def train(epochs):
+def train(train_loader,test_loader,test_data,epochs,model_origin_path,lr,model_save_path):
+    criterion = nn.CrossEntropyLoss()
+    model = torch.load(model_origin_path).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
     best_acc = 0.0
     train_accuracies = []  # record accuracy for training
     train_losses = []  # record loss for training
@@ -19,7 +24,7 @@ def train(epochs):
         correct_train = 0   #count number of correct prediction in this batch
         total_train = 0   #count of all data in this batch
 
-        train_bar=tqdm(trainloader,position=0,leave=True) #file=sys.stdout
+        train_bar=tqdm(train_loader,position=0,leave=True) #file=sys.stdout
         for i, data in enumerate(train_bar):
             images, labels = data # get the inputs; data is a list of [images, labels]
             optimizer.zero_grad() # zero the parameter gradients
@@ -39,7 +44,7 @@ def train(epochs):
                                                                     loss)
         train_accuracy = correct_train / total_train
         train_accuracies.append(train_accuracy)
-        train_loss = running_loss / len(trainloader)
+        train_loss = running_loss / len(train_loader)
         train_losses.append(train_loss)
 
 
@@ -48,7 +53,7 @@ def train(epochs):
         total_valid = 0
         acc = 0.0  # accumulate accurate number / epoch
         with torch.no_grad():
-            val_bar = tqdm(testloader)
+            val_bar = tqdm(test_loader)
             for val_data in val_bar:
                 val_images, val_labels = val_data
                 outputs = model(val_images.to(device))
@@ -63,7 +68,7 @@ def train(epochs):
         valid_accuracies.append(valid_accuracy)
         valid_losses.append(loss.item())
 
-        val_accurate = acc / len(testset) #val_num=len(testset)
+        val_accurate = acc / len(test_data) #val_num=len(testset)
         print('[epoch %d] train_loss: %.3f  val_accuracy: %.3f' %
                 (epoch + 1, train_loss, valid_accuracy)) #transteps=len(trainloader)
         # s per iteration, count of iteration = total number of sample / batch size
@@ -75,11 +80,18 @@ def train(epochs):
 
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=100, help="batch size")
+    parser.add_argument("--batch_size", type=int, default=100, help="batch_size")
     parser.add_argument("--dataset", type=str, default=None, help="dataset")
+    parser.add_argument("--config", type=str, default=None, help="path to config file")
     return parser
 
 if __name__ == "__main__":
     parser = setup_parser()
     args = parser.parse_args()
-    train(args)
+    if args.config:
+        with open(args.config, 'r') as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+    else:
+        config = {}
+    train_data,test_data,train_loader,test_loader = data_loader(args.dataset,args.batch_size)
+    train(train_loader,test_loader,test_data,config["epochs"],config["model_origin_path"],config["lr"],config["model_save_path"])
